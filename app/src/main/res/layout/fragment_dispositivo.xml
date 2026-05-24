@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/gray_50">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Stato Dispositivo" android:textSize="18sp" android:textStyle="bold"
+            android:textColor="@color/gray_900" android:layout_marginBottom="4dp"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Sensori, connessioni e configurazione ESP8266"
+            android:textSize="12sp" android:textColor="@color/gray_500"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Devices grid (RecyclerView con GridLayoutManager) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvDevices"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- MQTT Topics -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:background="@drawable/bg_card"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:padding="16dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="MQTT Topics" android:textStyle="bold"
+                    android:textColor="@color/gray_900" android:textSize="14sp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Canali di comunicazione attivi"
+                    android:textSize="11sp" android:textColor="@color/gray_400"/>
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/gray_100"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvTopics"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"/>
+        </LinearLayout>
+
+        <!-- GPIO Pinout -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:background="@drawable/bg_card"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:padding="16dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Pin ESP8266" android:textStyle="bold"
+                    android:textColor="@color/gray_900" android:textSize="14sp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Assegnazione GPIO attiva"
+                    android:textSize="11sp" android:textColor="@color/gray_400"/>
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/gray_100"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvPins"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

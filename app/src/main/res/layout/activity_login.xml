@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/gray_50"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp"
+        android:paddingTop="60dp"
+        android:paddingBottom="40dp">
+
+        <!-- Logo -->
+        <FrameLayout
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginBottom="16dp">
+            <View
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:background="@drawable/bg_brand_gradient"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="🔐"
+                android:textSize="28sp"/>
+        </FrameLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pannello Amministratore"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/gray_900"
+            android:layout_marginBottom="6dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Accesso riservato agli amministratori"
+            android:textSize="14sp"
+            android:textColor="@color/gray_500"
+            android:layout_marginBottom="32dp"/>
+
+        <!-- Card login -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="24dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Email"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/gray_700"
+                android:layout_marginBottom="6dp"/>
+
+            <EditText
+                android:id="@+id/etEmail"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:hint="@string/hint_email"
+                android:inputType="textEmailAddress"
+                android:background="@drawable/bg_input"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:textSize="14sp"
+                android:textColor="@color/gray_900"
+                android:textColorHint="@color/gray_400"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Password"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/gray_700"
+                android:layout_marginBottom="6dp"/>
+
+            <EditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:hint="@string/hint_password"
+                android:inputType="textPassword"
+                android:background="@drawable/bg_input"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:textSize="14sp"
+                android:textColor="@color/gray_900"
+                android:textColorHint="@color/gray_400"
+                android:layout_marginBottom="24dp"/>
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                android:layout_marginBottom="8dp"/>
+
+            <Button
+                android:id="@+id/btnLogin"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="@string/btn_login"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                style="@style/Widget.Material3.Button"
+                android:backgroundTint="@color/brand_mid"/>
+        </LinearLayout>
+
+        <!-- Demo credentials box -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CREDENZIALI DI TEST"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/gray_400"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="10dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="6dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="Email"
+                    android:textColor="@color/gray_500" android:textSize="13sp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="admin@cancello.local"
+                    android:textColor="@color/gray_900" android:textStyle="bold" android:textSize="13sp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="Password"
+                    android:textColor="@color/gray_500" android:textSize="13sp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="password"
+                    android:textColor="@color/gray_900" android:textStyle="bold" android:textSize="13sp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

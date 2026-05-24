@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Nome completo" android:textSize="12sp" android:textStyle="bold"
+            android:textColor="@color/gray_700" android:layout_marginBottom="4dp"/>
+        <EditText android:id="@+id/etName"
+            android:layout_width="match_parent" android:layout_height="48dp"
+            android:hint="Es. Mario Rossi" android:background="@drawable/bg_input"
+            android:paddingStart="12dp" android:paddingEnd="12dp"
+            android:inputType="textPersonName" android:layout_marginBottom="12dp"/>
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Email" android:textSize="12sp" android:textStyle="bold"
+            android:textColor="@color/gray_700" android:layout_marginBottom="4dp"/>
+        <EditText android:id="@+id/etEmail"
+            android:layout_width="match_parent" android:layout_height="48dp"
+            android:hint="mario@esempio.it" android:background="@drawable/bg_input"
+            android:paddingStart="12dp" android:paddingEnd="12dp"
+            android:inputType="textEmailAddress" android:layout_marginBottom="12dp"/>
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Password (minimo 8 caratteri)" android:textSize="12sp" android:textStyle="bold"
+            android:textColor="@color/gray_700" android:layout_marginBottom="4dp"/>
+        <EditText android:id="@+id/etPassword"
+            android:layout_width="match_parent" android:layout_height="48dp"
+            android:hint="Lascia vuota per non modificare" android:background="@drawable/bg_input"
+            android:paddingStart="12dp" android:paddingEnd="12dp"
+            android:inputType="textPassword" android:layout_marginBottom="12dp"/>
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="UID Badge RFID (opzionale)" android:textSize="12sp" android:textStyle="bold"
+            android:textColor="@color/gray_700" android:layout_marginBottom="4dp"/>
+        <EditText android:id="@+id/etRfid"
+            android:layout_width="match_parent" android:layout_height="48dp"
+            android:hint="Es. A1B2C3D4" android:background="@drawable/bg_input"
+            android:paddingStart="12dp" android:paddingEnd="12dp"
+            android:inputType="text" android:layout_marginBottom="12dp"/>
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="ID Impronta (1–127, opzionale)" android:textSize="12sp" android:textStyle="bold"
+            android:textColor="@color/gray_700" android:layout_marginBottom="4dp"/>
+        <EditText android:id="@+id/etImpronta"
+            android:layout_width="match_parent" android:layout_height="48dp"
+            android:hint="Es. 1" android:background="@drawable/bg_input"
+            android:paddingStart="12dp" android:paddingEnd="12dp"
+            android:inputType="number" android:layout_marginBottom="12dp"/>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical">
+            <Switch android:id="@+id/switchAttivo"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:checked="true" android:layout_marginEnd="8dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Accesso attivo" android:textSize="13sp" android:textColor="@color/gray_700"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Cancello IoT</string>
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_accessi">Accessi</string>
+    <string name="nav_utenti">Utenti</string>
+    <string name="nav_dispositivo">Dispositivo</string>
+    <string name="hint_email">admin@cancello.local</string>
+    <string name="hint_password">Password</string>
+    <string name="btn_login">Accedi</string>
+</resources>

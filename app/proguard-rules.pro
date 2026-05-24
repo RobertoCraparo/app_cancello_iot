@@ -1,0 +1,3 @@
+-keep class com.example.cancello_iot.model.** { *; }
+-keep class org.eclipse.paho.** { *; }
+-dontwarn org.eclipse.paho.**
