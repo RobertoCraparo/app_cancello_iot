@@ -1,7 +1,6 @@
 package com.example.cancello_iot;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,17 +31,22 @@ public class MainActivity extends AppCompatActivity {
 
         mqtt.setListener(new MqttManager.Listener() {
             @Override public void onConnected() {
+                // Aggiorna l'interfaccia globale in alto a sinistra
                 b.tvMqttStatus.setText("MQTT Online");
-                b.tvMqttStatus.setTextColor(0xFF22C55E);
+                b.tvMqttStatus.setTextColor(0xFF22C55E); // Verde
                 b.mqttDot.setBackgroundColor(0xFF22C55E);
+
+                // Richiede a Laravel i dati di stato iniziale non appena connesso
+                mqtt.publish(MqttManager.TOPIC_SYNC_REQ, "{\"action\":\"fetch_initial_data\"}");
             }
             @Override public void onDisconnected() {
+                // Notifica la caduta della connessione al broker MQTT
                 b.tvMqttStatus.setText("MQTT Offline");
-                b.tvMqttStatus.setTextColor(0xFFEF4444);
+                b.tvMqttStatus.setTextColor(0xFFEF4444); // Rosso
                 b.mqttDot.setBackgroundColor(0xFFEF4444);
             }
             @Override public void onMessage(String topic, String payload) {
-                // I fragment ascoltano tramite getMqtt()
+                // Propaga il messaggio in entrata al Fragment attualmente visibile
                 Fragment current = getSupportFragmentManager()
                         .findFragmentById(R.id.fragmentContainer);
                 if (current instanceof MqttManager.Listener)
@@ -65,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
             if      (id == R.id.nav_dashboard)   f = new DashboardFragment();
             else if (id == R.id.nav_accessi)     f = new AccessiFragment();
             else if (id == R.id.nav_utenti)      f = new UtentiFragment();
-            else                                  f = new DispositivoFragment();
+            else                                 f = new DispositivoFragment();
             loadFragment(f);
             return true;
         });

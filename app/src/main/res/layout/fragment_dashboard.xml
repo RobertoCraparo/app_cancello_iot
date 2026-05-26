@@ -15,7 +15,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Gate control card -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -27,7 +26,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Controllo in tempo reale"
+                    android:text="Controllo Cancello"
                     android:textColor="#80FFFFFF"
                     android:textSize="12sp"
                     android:layout_marginBottom="4dp"/>
@@ -47,7 +46,7 @@
                         android:id="@+id/tvGateStatus"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="—"
+                        android:text="In attesa..."
                         android:textColor="@color/white"
                         android:textSize="28sp"
                         android:textStyle="bold"/>
@@ -57,12 +56,11 @@
                     android:id="@+id/tvLastAction"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="In attesa di dati MQTT…"
+                    android:text="Sincronizzazione in corso…"
                     android:textColor="#66FFFFFF"
                     android:textSize="12sp"
                     android:layout_marginBottom="20dp"/>
 
-                <!-- Indicatori inline -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -72,45 +70,24 @@
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
                         android:layout_weight="1" android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="WiFi" android:textColor="#66FFFFFF" android:textSize="11sp"/>
+                            android:text="Rete WiFi ESP" android:textColor="#66FFFFFF" android:textSize="11sp"/>
                         <TextView android:id="@+id/tvWifi"
                             android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="—" android:textColor="@color/white"
+                            android:text="Scollegato" android:textColor="@color/white"
                             android:textSize="13sp" android:textStyle="bold"/>
                     </LinearLayout>
 
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
                         android:layout_weight="1" android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="MQTT" android:textColor="#66FFFFFF" android:textSize="11sp"/>
+                            android:text="Broker MQTT ESP" android:textColor="#66FFFFFF" android:textSize="11sp"/>
                         <TextView android:id="@+id/tvMqttInd"
                             android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="—" android:textColor="@color/white"
-                            android:textSize="13sp" android:textStyle="bold"/>
-                    </LinearLayout>
-
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="Distanza" android:textColor="#66FFFFFF" android:textSize="11sp"/>
-                        <TextView android:id="@+id/tvDistanza"
-                            android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="—" android:textColor="@color/white"
-                            android:textSize="13sp" android:textStyle="bold"/>
-                    </LinearLayout>
-
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="Uptime" android:textColor="#66FFFFFF" android:textSize="11sp"/>
-                        <TextView android:id="@+id/tvUptime"
-                            android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="—" android:textColor="@color/white"
+                            android:text="Offline" android:textColor="@color/white"
                             android:textSize="13sp" android:textStyle="bold"/>
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Pulsanti gate -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -121,7 +98,7 @@
                         android:layout_width="0dp"
                         android:layout_height="44dp"
                         android:layout_weight="1"
-                        android:text="🔓 Apri"
+                        android:text="🔓 Apri (90°)"
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:backgroundTint="@color/green_500"
@@ -133,27 +110,14 @@
                         android:layout_width="0dp"
                         android:layout_height="44dp"
                         android:layout_weight="1"
-                        android:text="🔒 Chiudi"
+                        android:text="🔒 Chiudi (0°)"
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:backgroundTint="#33FFFFFF"
-                        android:layout_marginEnd="8dp"
-                        style="@style/Widget.Material3.Button"/>
-
-                    <Button
-                        android:id="@+id/btnStop"
-                        android:layout_width="0dp"
-                        android:layout_height="44dp"
-                        android:layout_weight="1"
-                        android:text="⛔ Stop"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        android:backgroundTint="@color/red_500"
                         style="@style/Widget.Material3.Button"/>
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- KPI cards -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -205,7 +169,6 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Ultimi accessi -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

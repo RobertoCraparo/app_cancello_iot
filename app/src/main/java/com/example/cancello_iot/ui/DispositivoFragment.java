@@ -26,38 +26,36 @@ public class DispositivoFragment extends Fragment implements MqttManager.Listene
 
     private FragmentDispositivoBinding b;
 
-    // ─── Dati statici (specchio del controller PHP) ─────────
+    // ─── Dati statici (Sensori attualmente in uso) ─────────
     static final List<String[]> DEVICES = Arrays.asList(
-        new String[]{"📡","HC-SR04",         "Sensore Ultrasuoni",  "38","cm",  "GPIO16 Trig / GPIO10 Echo"},
-        new String[]{"💳","RC522 RFID",       "Lettore SPI",         "Ready","", "GPIO12-15 — SPI hardware"},
-        new String[]{"👆","Sensore Impronte", "UART SoftSerial",     "4","FP",   "GPIO1/GPIO3 — 4 impronte reg."},
-        new String[]{"🖥️","OLED Display",     "I2C via PCF8574",     "0x27","I2C","GPIO4 SDA / GPIO5 SCL"},
-        new String[]{"🔗","MCP23017",         "I/O Expander I2C",    "0x20","I2C","16 GPIO — LED/Buzzer/Tastiera"},
-        new String[]{"⚙️","Servo × 2",        "PWM Software",        "0","°",    "GPIO0 Sx / GPIO2 Dx"}
+            new String[]{"💳","RC522 RFID",       "Lettore SPI",         "Attivo","", "GPIO12-15 — SPI hardware"},
+            new String[]{"👆","AS608",            "Sensore Impronte",    "Attivo","", "UART — Impronte reg."},
+            new String[]{"🖥️","Display",          "Interfaccia I2C",     "Attivo","", "Comunicazione I2C"},
+            new String[]{"⚙️","Servo HSMS2309S",  "Controllo Cancello",  "0-90","°", "PWM Software"},
+            new String[]{"🔢","Tastierino HX543", "Input PIN",           "Attivo","", "Matrice I/O"}
     );
 
+    // ─── Topic allineati con il nuovo MqttManager ─────────
     static final List<String[]> TOPICS = Arrays.asList(
-        new String[]{"cancello/stato",              "Stato attuale cancello",         "PUB"},
-        new String[]{"cancello/comando",            "Comandi apertura/chiusura",      "SUB"},
-        new String[]{"cancello/accessi/log",        "Log accessi → MongoDB",          "PUB"},
-        new String[]{"cancello/sensore/ultrasuoni", "Distanza HC-SR04 live",          "PUB"},
-        new String[]{"cancello/sistema/heartbeat",  "Keepalive ESP8266",              "PUB"},
-        new String[]{"cancello/utenti/aggiorna",    "Aggiorna credenziali da server", "SUB"}
+            new String[]{MqttManager.TOPIC_STATO,      "Stato attuale cancello",         "PUB"},
+            new String[]{MqttManager.TOPIC_SERVO,      "Comando apertura/chiusura 0-90°","SUB"},
+            new String[]{MqttManager.TOPIC_LOG,        "Log accessi per Database",       "PUB"},
+            new String[]{MqttManager.TOPIC_ESP_STATUS, "Stato rete e vita ESP8266",      "PUB"},
+            new String[]{MqttManager.TOPIC_SYNC_REQ,   "Richiesta dati a Laravel",       "PUB"},
+            new String[]{MqttManager.TOPIC_SYNC_RES,   "Risposta dati da Laravel",       "SUB"}
     );
 
+    // ─── PIN Hardware aggiornati ─────────
     static final List<String[]> PINS = Arrays.asList(
-        new String[]{"GPIO14","RC522 SCK",    "SPI"},
-        new String[]{"GPIO13","RC522 MOSI",   "SPI"},
-        new String[]{"GPIO12","RC522 MISO",   "SPI"},
-        new String[]{"GPIO15","RC522 SS",     "SPI"},
-        new String[]{"GPIO4", "I2C SDA",      "I2C"},
-        new String[]{"GPIO5", "I2C SCL",      "I2C"},
-        new String[]{"GPIO1", "Impronte TX",  "UART"},
-        new String[]{"GPIO3", "Impronte RX",  "UART"},
-        new String[]{"GPIO0", "Servo Sx",     "PWM"},
-        new String[]{"GPIO2", "Servo Dx",     "PWM"},
-        new String[]{"GPIO16","HC-SR04 Trig", "GPIO"},
-        new String[]{"GPIO10","HC-SR04 Echo", "GPIO"}
+            new String[]{"GPIO14","RC522 SCK",    "SPI"},
+            new String[]{"GPIO13","RC522 MOSI",   "SPI"},
+            new String[]{"GPIO12","RC522 MISO",   "SPI"},
+            new String[]{"GPIO15","RC522 SS",     "SPI"},
+            new String[]{"GPIO4", "I2C SDA (Disp)","I2C"},
+            new String[]{"GPIO5", "I2C SCL (Disp)","I2C"},
+            new String[]{"UART",  "AS608 TX/RX",  "UART"},
+            new String[]{"PWM",   "Servo HSMS2309S","PWM"},
+            new String[]{"I/O",   "Tastierino",   "GPIO"}
     );
 
     @Override
@@ -70,7 +68,7 @@ public class DispositivoFragment extends Fragment implements MqttManager.Listene
     public void onViewCreated(@NonNull View view, @Nullable Bundle s) {
         super.onViewCreated(view, s);
 
-        // Devices grid 2 colonne
+        // Imposta la griglia dei dispositivi (2 colonne)
         b.rvDevices.setLayoutManager(new GridLayoutManager(getContext(), 2));
         b.rvDevices.setAdapter(new SimpleAdapter<>(DEVICES, R.layout.item_device) {
             @Override void bind(View v, String[] item, int pos) {
@@ -83,7 +81,7 @@ public class DispositivoFragment extends Fragment implements MqttManager.Listene
             }
         });
 
-        // Topics
+        // Imposta la lista dei Topic MQTT
         b.rvTopics.setLayoutManager(new LinearLayoutManager(getContext()));
         b.rvTopics.setAdapter(new SimpleAdapter<>(TOPICS, R.layout.item_topic) {
             @Override void bind(View v, String[] item, int pos) {
@@ -101,7 +99,7 @@ public class DispositivoFragment extends Fragment implements MqttManager.Listene
             }
         });
 
-        // Pins
+        // Imposta la lista dei Pin
         b.rvPins.setLayoutManager(new LinearLayoutManager(getContext()));
         b.rvPins.setAdapter(new SimpleAdapter<>(PINS, R.layout.item_pin) {
             @Override void bind(View v, String[] item, int pos) {
@@ -115,12 +113,13 @@ public class DispositivoFragment extends Fragment implements MqttManager.Listene
             }
         });
 
-        // MQTT
+        // Collega questo fragment al manager MQTT per ascoltare eventi (se necessario in futuro)
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).getMqtt().setListener(this);
         }
     }
 
+    // Assegna colori ai vari protocolli hardware per la UI
     private int[] busColors(String bus) {
         switch (bus) {
             case "SPI":  return new int[]{Color.parseColor("#1D4ED8"), Color.parseColor("#EFF6FF")};
@@ -131,22 +130,15 @@ public class DispositivoFragment extends Fragment implements MqttManager.Listene
         }
     }
 
-    // ─── MQTT: aggiorna distanza in tempo reale ─────────────
+    // --- Metodi interfaccia MqttManager.Listener (Attualmente non usati per logica live qui) ---
     @Override public void onConnected() {}
     @Override public void onDisconnected() {}
-    @Override public void onMessage(String topic, String payload) {
-        if (!isAdded() || !MqttManager.TOPIC_ULTRASUONI.equals(topic)) return;
-        // Aggiorna card HC-SR04 se visibile — per semplicità aggiorniamo il titolo del fragment
-        requireActivity().runOnUiThread(() -> {
-            // La griglia usa dati statici; per live update potremmo notifyItemChanged(0)
-            // In questa implementazione aggiorniamo solo il titolo di debug
-        });
-    }
+    @Override public void onMessage(String topic, String payload) {}
     @Override public void onError(String message) {}
 
     @Override public void onDestroyView() { super.onDestroyView(); b = null; }
 
-    // ─── Adapter generico inline ─────────────────────────────
+    // ─── Adapter generico inline per gestire le liste ─────────────────────────────
     abstract static class SimpleAdapter<T> extends RecyclerView.Adapter<SimpleAdapter.VH> {
         private final List<T> items;
         private final int layout;

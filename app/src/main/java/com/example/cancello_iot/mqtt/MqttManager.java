@@ -24,11 +24,13 @@ import javax.net.ssl.SSLSocketFactory;
 public class MqttManager {
     private static final String TAG = "MqttManager";
 
+    // Definizione dei topic per la comunicazione MQTT
     public static final String TOPIC_STATO      = "cancello/stato";
-    public static final String TOPIC_COMANDO    = "cancello/comando";
+    public static final String TOPIC_SERVO      = "cancello/comando/servo"; // Topic per pilotare il servo hsms2309s (0-90 gradi)
     public static final String TOPIC_LOG        = "cancello/accessi/log";
-    public static final String TOPIC_ULTRASUONI = "cancello/sensore/ultrasuoni";
-    public static final String TOPIC_HEARTBEAT  = "cancello/sistema/heartbeat";
+    public static final String TOPIC_ESP_STATUS = "cancello/sistema/esp_stato"; // Stato connessione WiFi/LWT dell'ESP8266
+    public static final String TOPIC_SYNC_REQ   = "cancello/app/sync_req"; // L'app richiede i dati a Laravel all'avvio
+    public static final String TOPIC_SYNC_RES   = "cancello/laravel/sync_res"; // Laravel risponde con i dati formattati in JSON
 
     public interface Listener {
         void onConnected();
@@ -79,10 +81,12 @@ public class MqttManager {
                 });
 
                 client.connect(opts);
+
+                // Sottoscrizioni ai topic necessari per ricevere aggiornamenti
                 client.subscribe(TOPIC_STATO,      1);
-                client.subscribe(TOPIC_ULTRASUONI, 0);
-                client.subscribe(TOPIC_HEARTBEAT,  0);
                 client.subscribe(TOPIC_LOG,        1);
+                client.subscribe(TOPIC_ESP_STATUS, 0); // Ascolta lo stato di vita dell'ESP8266
+                client.subscribe(TOPIC_SYNC_RES,   1); // Ascolta la risposta di Laravel al boot
 
                 notifyConnected();
                 Log.i(TAG, "Connected → " + url);
