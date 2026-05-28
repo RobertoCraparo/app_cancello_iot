@@ -14,23 +14,28 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
+import java.security.KeyStore;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 
 public class MqttManager {
     private static final String TAG = "MqttManager";
 
-    // Definizione dei topic per la comunicazione MQTT
+    public static final String TOPIC_COMANDO    = "cancello/comando";
     public static final String TOPIC_STATO      = "cancello/stato";
-    public static final String TOPIC_SERVO      = "cancello/comando/servo"; // Topic per pilotare il servo hsms2309s (0-90 gradi)
+    public static final String TOPIC_SERVO      = "cancello/comando/servo";
     public static final String TOPIC_LOG        = "cancello/accessi/log";
-    public static final String TOPIC_ESP_STATUS = "cancello/sistema/esp_stato"; // Stato connessione WiFi/LWT dell'ESP8266
-    public static final String TOPIC_SYNC_REQ   = "cancello/app/sync_req"; // L'app richiede i dati a Laravel all'avvio
-    public static final String TOPIC_SYNC_RES   = "cancello/laravel/sync_res"; // Laravel risponde con i dati formattati in JSON
+    public static final String TOPIC_ESP_STATUS = "cancello/sistema/esp_stato";
+    public static final String TOPIC_SYNC_REQ   = "cancello/app/sync_req";
+    public static final String TOPIC_SYNC_RES   = "cancello/laravel/sync_res";
 
     public interface Listener {
         void onConnected();
@@ -43,9 +48,21 @@ public class MqttManager {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final Map<String, String> lastValues = new HashMap<>();
+
+    // Listener principale (MainActivity)
     private Listener listener;
+    // Listener aggiuntivi (fragment attivi)
+    private final List<Listener> extraListeners = new ArrayList<>();
 
     public void setListener(Listener l) { this.listener = l; }
+
+    public void addListener(Listener l) {
+        if (!extraListeners.contains(l)) extraListeners.add(l);
+    }
+
+    public void removeListener(Listener l) {
+        extraListeners.remove(l);
+    }
 
     public void connect(String clientId) {
         executor.submit(() -> {
@@ -59,21 +76,22 @@ public class MqttManager {
                 opts.setUserName(BuildConfig.MQTT_USERNAME);
                 opts.setPassword(BuildConfig.MQTT_PASSWORD.toCharArray());
                 opts.setCleanSession(true);
-                opts.setConnectionTimeout(10);
+                opts.setConnectionTimeout(15);
                 opts.setKeepAliveInterval(30);
                 opts.setAutomaticReconnect(true);
 
                 if (BuildConfig.MQTT_PORT == 8883) {
-                    opts.setSocketFactory(SSLSocketFactory.getDefault());
+                    opts.setSocketFactory(buildSslSocketFactory());
                 }
 
                 client.setCallback(new MqttCallback() {
                     @Override public void connectionLost(Throwable cause) {
-                        Log.w(TAG, "Connection lost", cause);
+                        Log.w(TAG, "Connection lost");
                         notifyDisconnected();
                     }
                     @Override public void messageArrived(String topic, MqttMessage msg) {
                         String payload = new String(msg.getPayload());
+                        Log.i(TAG, "MSG topic=" + topic);
                         lastValues.put(topic, payload);
                         notifyMessage(topic, payload);
                     }
@@ -82,20 +100,28 @@ public class MqttManager {
 
                 client.connect(opts);
 
-                // Sottoscrizioni ai topic necessari per ricevere aggiornamenti
                 client.subscribe(TOPIC_STATO,      1);
                 client.subscribe(TOPIC_LOG,        1);
-                client.subscribe(TOPIC_ESP_STATUS, 0); // Ascolta lo stato di vita dell'ESP8266
-                client.subscribe(TOPIC_SYNC_RES,   1); // Ascolta la risposta di Laravel al boot
+                client.subscribe(TOPIC_ESP_STATUS, 0);
+                client.subscribe(TOPIC_SYNC_RES,   1);
 
                 notifyConnected();
                 Log.i(TAG, "Connected → " + url);
 
-            } catch (MqttException e) {
-                Log.e(TAG, "MQTT error", e);
+            } catch (Exception e) {
+                Log.e(TAG, "MQTT error: " + e.getMessage(), e);
                 notifyError("Connessione MQTT fallita: " + e.getMessage());
             }
         });
+    }
+
+    private SSLSocketFactory buildSslSocketFactory() throws Exception {
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance(
+                TrustManagerFactory.getDefaultAlgorithm());
+        tmf.init((KeyStore) null);
+        SSLContext ctx = SSLContext.getInstance("TLS");
+        ctx.init(null, tmf.getTrustManagers(), null);
+        return ctx.getSocketFactory();
     }
 
     public void publish(String topic, String payload) {
@@ -105,6 +131,9 @@ public class MqttManager {
                     MqttMessage msg = new MqttMessage(payload.getBytes());
                     msg.setQos(1);
                     client.publish(topic, msg);
+                    Log.i(TAG, "PUBLISHED topic=" + topic);
+                } else {
+                    Log.w(TAG, "Publish fallito: client non connesso");
                 }
             } catch (MqttException e) { Log.e(TAG, "Publish error", e); }
         });
@@ -120,8 +149,31 @@ public class MqttManager {
     public boolean isConnected() { return client != null && client.isConnected(); }
     public String getLastValue(String topic) { return lastValues.getOrDefault(topic, "—"); }
 
-    private void notifyConnected()                { mainHandler.post(() -> { if (listener != null) listener.onConnected(); }); }
-    private void notifyDisconnected()             { mainHandler.post(() -> { if (listener != null) listener.onDisconnected(); }); }
-    private void notifyMessage(String t, String p){ mainHandler.post(() -> { if (listener != null) listener.onMessage(t, p); }); }
-    private void notifyError(String m)            { mainHandler.post(() -> { if (listener != null) listener.onError(m); }); }
+    private void notifyConnected() {
+        mainHandler.post(() -> {
+            if (listener != null) listener.onConnected();
+            for (Listener l : new ArrayList<>(extraListeners)) l.onConnected();
+        });
+    }
+
+    private void notifyDisconnected() {
+        mainHandler.post(() -> {
+            if (listener != null) listener.onDisconnected();
+            for (Listener l : new ArrayList<>(extraListeners)) l.onDisconnected();
+        });
+    }
+
+    private void notifyMessage(String t, String p) {
+        mainHandler.post(() -> {
+            if (listener != null) listener.onMessage(t, p);
+            for (Listener l : new ArrayList<>(extraListeners)) l.onMessage(t, p);
+        });
+    }
+
+    private void notifyError(String m) {
+        mainHandler.post(() -> {
+            if (listener != null) listener.onError(m);
+            for (Listener l : new ArrayList<>(extraListeners)) l.onError(m);
+        });
+    }
 }

@@ -13,26 +13,18 @@ android {
         versionCode 1
         versionName "1.0"
 
-        // Istanziazione del file local.properties per la lettura sicura delle chiavi.
-        // Se il file non esiste, le variabili prenderanno i valori di fallback definiti sotto.
-        def localProps = new Properties()
-        def localFile  = rootProject.file("local.properties")
-        if (localFile.exists()) localProps.load(localFile.newInputStream())
-
         // Configurazione API REST (Laravel)
-        buildConfigField "String", "SERVER_URL",    localProps.getProperty("SERVER_URL",    '"http://10.0.2.2:8000"')
-        buildConfigField "String", "API_TOKEN",     localProps.getProperty("API_TOKEN",     '""')
+        buildConfigField "String", "SERVER_URL",    '"http://10.38.24.205:8000"'
+        buildConfigField "String", "API_TOKEN",     '""'
 
         // Configurazione Broker MQTT (HiveMQ Cloud)
-        // I valori di fallback corrispondono ai dati del cluster per la connessione TLS sulla porta 8883.
-        buildConfigField "String", "MQTT_HOST",     localProps.getProperty("MQTT_HOST",     '"7d0f645a4d7c4388a47d5d3eaa1bb9f1.s1.eu.hivemq.cloud"')
-        buildConfigField "int",    "MQTT_PORT",     localProps.getProperty("MQTT_PORT",     "8883")
-        buildConfigField "String", "MQTT_USERNAME", localProps.getProperty("MQTT_USERNAME", '"gate_iot"')
-        buildConfigField "String", "MQTT_PASSWORD", localProps.getProperty("MQTT_PASSWORD", '"Password1"')
+        buildConfigField "String", "MQTT_HOST",     '"7d0f645a4d7c4388a47d5d3eaa1bb9f1.s1.eu.hivemq.cloud"'
+        buildConfigField "int",    "MQTT_PORT",     "8883"
+        buildConfigField "String", "MQTT_USERNAME", '"Utente"'
+        buildConfigField "String", "MQTT_PASSWORD", '"Password1"'
     }
 
     buildFeatures {
-        // Abilita la generazione della classe BuildConfig per l'accesso ai parametri precedenti.
         buildConfig = true
         viewBinding = true
     }
@@ -45,14 +37,12 @@ android {
     }
 
     compileOptions {
-        // Compatibilità con bytecode Java 17, richiesto per le librerie moderne.
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
 }
 
 dependencies {
-    // Dipendenze Core Android e Interfaccia Grafica
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
@@ -61,14 +51,11 @@ dependencies {
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     implementation 'androidx.cardview:cardview:1.0.0'
 
-    // Dipendenze di Rete HTTP e Deserializzazione JSON
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     implementation 'com.google.code.gson:gson:2.11.0'
 
-    // Implementazione del Client MQTT Paho
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5'
 
-    // Framework per Unit Testing e UI Testing
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'

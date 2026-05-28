@@ -2,6 +2,7 @@ package com.example.cancello_iot.ui;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,8 +28,11 @@ import java.util.concurrent.Executors;
 
 public class DashboardFragment extends Fragment implements MqttManager.Listener {
 
+    private static final String TAG = "DashboardFragment";
+
     private FragmentDashboardBinding b;
     private AccessiAdapter adapter;
+    private MqttManager mqtt;
     private final ExecutorService exec = Executors.newSingleThreadExecutor();
 
     @Override
@@ -41,21 +45,21 @@ public class DashboardFragment extends Fragment implements MqttManager.Listener 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Inizializzazione della lista per gli ultimi accessi
+        if (getActivity() instanceof MainActivity) {
+            mqtt = ((MainActivity) getActivity()).getMqtt();
+        }
+
         adapter = new AccessiAdapter();
         b.rvUltimiAccessi.setLayoutManager(new LinearLayoutManager(getContext()));
         b.rvUltimiAccessi.setAdapter(adapter);
         b.rvUltimiAccessi.setNestedScrollingEnabled(false);
 
-        // Comandi per il servo hsms2309s (0 gradi = chiuso, 90 gradi = aperto)
-        b.btnApri.setOnClickListener(v -> sendCommand("90"));
-        b.btnChiudi.setOnClickListener(v -> sendCommand("0"));
+        b.btnApri.setOnClickListener(v -> sendCommand("apri"));
+        b.btnChiudi.setOnClickListener(v -> sendCommand("chiudi"));
 
-        // Gestione aggiornamento manuale (Swipe to refresh)
         b.swipeRefresh.setOnRefreshListener(this::loadData);
         b.swipeRefresh.setColorSchemeColors(0xFF1352A0);
 
-        // Navigazione verso il tab Accessi completi
         b.tvVediTutti.setOnClickListener(v -> {
             if (getActivity() instanceof MainActivity) {
                 ((MainActivity) getActivity()).getSupportFragmentManager()
@@ -66,31 +70,37 @@ public class DashboardFragment extends Fragment implements MqttManager.Listener 
             }
         });
 
-        // Registra questo fragment per ascoltare i messaggi MQTT
-        if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).getMqtt().setListener(this);
-        }
-
-        // Caricamento iniziale dei dati
         loadData();
     }
 
-    // Carica gli ultimi log via API e richiede i KPI statistici via MQTT a Laravel
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mqtt != null) {
+            mqtt.addListener(this);
+            Log.d(TAG, "Registrato come MQTT listener");
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mqtt != null) {
+            mqtt.removeListener(this);
+            Log.d(TAG, "Deregistrato come MQTT listener");
+        }
+    }
+
     private void loadData() {
-        // Richiesta MQTT per statistiche
-        if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).getMqtt().publish(MqttManager.TOPIC_SYNC_REQ, "{\"action\":\"fetch_initial_data\"}");
+        if (mqtt != null) {
+            mqtt.publish(MqttManager.TOPIC_SYNC_REQ, "{\"action\":\"fetch_initial_data\"}");
         }
 
-        // Chiamata API per la lista (ottimale per array di dati)
         exec.submit(() -> {
             try {
-                ApiService api = new ApiService();
-                List<Accesso> accessi = api.getAccessi();
-
+                List<Accesso> accessi = new ApiService().getAccessi();
                 if (!isAdded()) return;
                 requireActivity().runOnUiThread(() -> {
-                    // Mostra solo i primi 6 accessi nella dashboard
                     List<Accesso> ultimi = accessi.size() > 6 ? accessi.subList(0, 6) : accessi;
                     adapter.setData(ultimi);
                     b.swipeRefresh.setRefreshing(false);
@@ -105,16 +115,16 @@ public class DashboardFragment extends Fragment implements MqttManager.Listener 
         });
     }
 
-    // Invia il comando al servo sul topic dedicato in formato JSON
-    private void sendCommand(String gradi) {
-        if (getActivity() instanceof MainActivity) {
-            String payload = "{\"comando\": \"muovi_servo\", \"gradi\": " + gradi + "}";
-            ((MainActivity) getActivity()).getMqtt().publish(MqttManager.TOPIC_SERVO, payload);
-            Toast.makeText(getContext(), "Comando servo inviato: " + gradi + "°", Toast.LENGTH_SHORT).show();
+    private void sendCommand(String azione) {
+        if (mqtt != null) {
+            long timestamp = System.currentTimeMillis() / 1000;
+            String payload = "{\"cmd\":\"" + azione + "\",\"timestamp\":" + timestamp + ",\"admin_id\":1,\"admin_nome\":\"Marco Rossi\"}";
+            mqtt.publish(MqttManager.TOPIC_COMANDO, payload);
+            Toast.makeText(getContext(), "Comando inviato: " + azione, Toast.LENGTH_SHORT).show();
         }
     }
 
-    // ─── Intercettazione Messaggi MQTT ────────────────────────────────────────
+    // ─── MqttManager.Listener ────────────────────────────────────────────────
 
     @Override
     public void onConnected() {
@@ -155,48 +165,43 @@ public class DashboardFragment extends Fragment implements MqttManager.Listener 
                             b.tvWifi.setTextColor(wifi.equalsIgnoreCase("Connesso") ? Color.WHITE : Color.parseColor("#EF4444"));
                         }
                         if (objStatus.has("mqtt")) {
-                            String mqtt = objStatus.getString("mqtt");
-                            b.tvMqttInd.setText(mqtt);
-                            b.tvMqttInd.setTextColor(mqtt.equalsIgnoreCase("Online") ? Color.WHITE : Color.parseColor("#EF4444"));
+                            String mqttStr = objStatus.getString("mqtt");
+                            b.tvMqttInd.setText(mqttStr);
+                            b.tvMqttInd.setTextColor(mqttStr.equalsIgnoreCase("Online") ? Color.WHITE : Color.parseColor("#EF4444"));
                         }
                         break;
 
                     case MqttManager.TOPIC_SYNC_RES:
                         JSONObject objSync = new JSONObject(payload);
-                        if (objSync.has("accessi_oggi")) b.tvAccessiOggi.setText(String.valueOf(objSync.getInt("accessi_oggi")));
-                        if (objSync.has("falliti")) b.tvFalliti.setText(String.valueOf(objSync.getInt("falliti")));
+                        if (objSync.has("accessi_oggi"))  b.tvAccessiOggi.setText(String.valueOf(objSync.getInt("accessi_oggi")));
+                        if (objSync.has("falliti"))        b.tvFalliti.setText(String.valueOf(objSync.getInt("falliti")));
                         if (objSync.has("utenti_attivi")) b.tvUtentiAttivi.setText(String.valueOf(objSync.getInt("utenti_attivi")));
                         if (objSync.has("stato_cancello")) updateGateStatus(objSync.getString("stato_cancello"));
                         break;
 
                     case MqttManager.TOPIC_LOG:
-                        // Se c'è un nuovo accesso, ricarica la lista per mostrare l'ultimo entrato
                         loadData();
                         break;
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e(TAG, "Errore parsing MQTT: " + e.getMessage());
             }
         });
     }
 
     @Override public void onError(String message) {}
 
-    // Aggiorna l'interfaccia principale del cancello
     private void updateGateStatus(String jsonOrString) {
         try {
             String stato = jsonOrString;
-            // Se il payload è un JSON, estrae il campo "stato", altrimenti usa la stringa nuda
             if (jsonOrString.trim().startsWith("{")) {
                 JSONObject obj = new JSONObject(jsonOrString);
                 stato = obj.optString("stato", jsonOrString);
             }
-
             boolean isAperto = stato.equalsIgnoreCase("aperto");
             b.tvGateStatus.setText(isAperto ? "Aperto" : "Chiuso");
             b.gateStatusDot.setBackgroundColor(isAperto ? Color.parseColor("#22C55E") : Color.parseColor("#EF4444"));
             b.tvLastAction.setText("Sincronizzato in tempo reale");
-
         } catch (Exception ignored) {
             b.tvGateStatus.setText("Errore Dati");
         }
